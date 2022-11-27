@@ -1,0 +1,99 @@
+#!/usr/bin/python3
+import argparse
+from time import sleep
+import socket
+
+class TFMixer:
+    def __init(self, hostname):
+        self.s = self.__connect(hostname, 49280)
+    
+    
+    def __connect(self, hostname, port):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(5)
+        s.connect((hostname, port))
+        return s
+    
+    
+    def send_command(self, command):
+        command = command.encode()
+        self.s.sendall(command)
+        
+    
+    def receive(self):
+        return self.s.recv(1500)
+    
+    
+    def close(self):
+        self.s.close()
+    
+
+def main():
+    args = get_args()
+    tf_mixer = TFMixer(args.hostname)
+    if args.receive:
+        receive(tf_mixer)
+    else:
+        commands = load_commands(args.commands)
+        send(tf_mixer, commands)
+    tf_mixer.close()
+    
+def send(tf_mixer, commands):
+    for command in commands:
+        print(command)
+        tf_mixer.send_command(command)
+        sleep(.05)
+    print(f'Received: {tf_mixer.receive()}')
+
+def receive(tf_mixer):
+    try:
+        while True:
+            r = tf_mixer.receive()
+            if r:
+                print(f'Received: {r}')
+                sleep(.05)
+    except KeyboardInterrupt:
+        pass 
+ 
+def load_commands(file):  
+    try:
+        with open(file) as fh:
+            commands = fh.read().splitlines()
+    except Exception as e:
+        raise Exception(
+                'An error occured trying to open settings file: %s, %s'
+                % (file, e)
+                )
+    return commands
+    
+def get_args():
+    parser = argparse.ArgumentParser(
+        description="Clearone Midi Control",
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        "-r", 
+        "--receive",
+        default=False,
+        help="Display received data from TF-Rack",
+        action='store_true'
+    )
+    
+    required_argument = parser.add_argument_group("required arguments")
+    required_argument.add_argument(
+        "-H", 
+        "--hostname",
+        help="Hostname of Yamaha TF Series Mixer",
+        required=True
+    )
+    required_argument.add_argument(
+        "-c", 
+        "--commands",
+        help="Command file, commands line by line in a file",
+        required=True
+    )
+    
+    return(parser.parse_args())
+    
+if __name__ == "__main__":
+    main()
