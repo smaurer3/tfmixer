@@ -1,0 +1,2 @@
+set MIXER:Current/Mix/Fader/On 1 0 0 
+set MIXER:Current/Mix/Fader/Level 2 0 -1200

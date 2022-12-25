@@ -4,18 +4,20 @@ from time import sleep
 import socket
 
 class TFMixer:
-    def __init(self, hostname):
-        self.s = self.__connect(hostname, 49280)
+    def __init__(self, hostname):
+        self.s = self._connect(hostname, 49280)
     
     
-    def __connect(self, hostname, port):
+    def _connect(self, hostname, port):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(5)
+        print((hostname,port))
         s.connect((hostname, port))
         return s
     
     
     def send_command(self, command):
+        command = command + '\n'
         command = command.encode()
         self.s.sendall(command)
         
@@ -48,10 +50,14 @@ def send(tf_mixer, commands):
 def receive(tf_mixer):
     try:
         while True:
-            r = tf_mixer.receive()
-            if r:
-                print(f'Received: {r}')
-                sleep(.05)
+            try:
+                r = tf_mixer.receive()
+                if r:
+                    print(f'Received: {r}')
+                    sleep(.05)
+            except:
+                pass
+
     except KeyboardInterrupt:
         pass 
  
